@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.card-hover {
+  @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1 cursor-pointer;
+}
+
+.btn-primary {
+  @apply bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium;
+}
+
+.btn-danger {
+  @apply bg-danger-500 text-white px-4 py-2 rounded-lg hover:bg-danger-600 transition-colors font-medium;
+}
+
+.btn-success {
+  @apply bg-success-500 text-white px-4 py-2 rounded-lg hover:bg-success-600 transition-colors font-medium;
+}
+
+.input-field {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none;
+}
+
+.ai-output {
+  @apply bg-gradient-to-br from-primary-50 to-blue-50 border border-primary-200 rounded-xl p-6;
+}
+
+.ai-output h3 {
+  @apply text-lg font-semibold text-primary-800 mb-2;
+}
+
+.ai-output p {
+  @apply text-gray-700 leading-relaxed mb-2;
+}
+
+.ai-output ul {
+  @apply list-disc list-inside space-y-1 text-gray-700;
+}
+
+.ai-output .score {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-bold;
+}
+
+.ai-output .score-high {
+  @apply bg-danger-50 text-danger-600;
+}
+
+.ai-output .score-medium {
+  @apply bg-warning-50 text-warning-600;
+}
+
+.ai-output .score-low {
+  @apply bg-success-50 text-success-600;
+}
