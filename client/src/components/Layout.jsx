@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Shield, BarChart3, FileCheck, AlertTriangle, ClipboardList, Search, FileText, Users, Monitor, DollarSign, UserCheck, KeyRound, GitBranch, BookOpen, ScrollText, Target, Calendar, Scale, Bell, LogOut, Menu, X, Brain, Sparkles } from 'lucide-react'
+import { Shield, BarChart3, FileCheck, AlertTriangle, ClipboardList, Search, FileText, Users, Monitor, DollarSign, UserCheck, KeyRound, GitBranch, BookOpen, ScrollText, Target, Calendar, Scale, Bell, LogOut, Menu, X, Brain, Sparkles, Upload, Activity, FileSearch, Calculator } from 'lucide-react'
 import AISidebar from './AISidebar'
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { path: '/controls', label: 'Control Testing', icon: Shield },
   { path: '/risk-assessments', label: 'Risk Assessment', icon: AlertTriangle },
   { path: '/evidence', label: 'Evidence Collection', icon: Search },
+  { path: '/evidence-vault', label: 'Evidence Vault', icon: Upload },
   { path: '/compliance', label: 'Compliance Checklist', icon: ClipboardList },
   { path: '/deficiencies', label: 'Deficiency Tracking', icon: FileCheck },
   { path: '/walkthroughs', label: 'Walkthroughs', icon: FileText },
@@ -23,6 +24,11 @@ const navItems = [
   { path: '/audit-plans', label: 'Audit Planning', icon: Calendar },
   { path: '/materiality', label: 'Materiality Assessment', icon: Scale },
   { path: '/incidents', label: 'Incident Management', icon: Bell },
+  { path: '/workpaper-review', label: 'PCAOB Workpaper Review', icon: FileSearch },
+  { path: '/controls-monitor', label: 'Controls Monitor', icon: Activity },
+  { path: '/regulatory-update', label: 'Regulatory Updates', icon: Bell },
+  { path: '/sampling-recommendation', label: 'Sampling Recommendation', icon: Calculator },
+  { path: '/evidence-quality', label: 'Evidence Quality', icon: FileSearch },
 ]
 
 export default function Layout({ children }) {

@@ -24,13 +24,33 @@ async function request(url, options = {}) {
   return data;
 }
 
+async function uploadFile(url, formData) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE}${url}`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (res.status === 401) {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+    return;
+  }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Upload failed');
+  return data;
+}
+
 export const api = {
   // Auth
   login: (email, password) => request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
   getMe: () => request('/auth/me'),
 
-  // Generic CRUD
-  getAll: (resource) => request(`/${resource}`),
+  // Generic CRUD with pagination
+  getAll: (resource, params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/${resource}${qs ? '?' + qs : ''}`);
+  },
   getOne: (resource, id) => request(`/${resource}/${id}`),
   create: (resource, data) => request(`/${resource}`, { method: 'POST', body: JSON.stringify(data) }),
   update: (resource, id, data) => request(`/${resource}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -49,20 +69,32 @@ export const api = {
   suggestPlan: (planId) => request('/ai/suggest-plan', { method: 'POST', body: JSON.stringify({ planId }) }),
   analyzeMateriality: (assessmentId) => request('/ai/analyze-materiality', { method: 'POST', body: JSON.stringify({ assessmentId }) }),
   analyzeIncident: (incidentId) => request('/ai/analyze-incident', { method: 'POST', body: JSON.stringify({ incidentId }) }),
-  analyzeEvidence: (evidenceId) => request('/ai/analyze-evidence', { method: 'POST', body: JSON.stringify({ evidenceId }) }),
-  analyzeCompliance: (complianceId) => request('/ai/analyze-compliance', { method: 'POST', body: JSON.stringify({ complianceId }) }),
-  analyzeReview: (reviewId) => request('/ai/analyze-review', { method: 'POST', body: JSON.stringify({ reviewId }) }),
-  analyzeAccess: (accessId) => request('/ai/analyze-access', { method: 'POST', body: JSON.stringify({ accessId }) }),
-  analyzeChange: (changeId) => request('/ai/analyze-change', { method: 'POST', body: JSON.stringify({ changeId }) }),
-  analyzeRemediation: (remediationId) => request('/ai/analyze-remediation', { method: 'POST', body: JSON.stringify({ remediationId }) }),
-  dashboardSummary: () => request('/ai/dashboard-summary', { method: 'POST' }),
 
-  // AI Sidebar tools
-  askAI: (question) => request('/ai/ask', { method: 'POST', body: JSON.stringify({ question }) }),
-  generateScopeMemo: () => request('/ai/generate-scope-memo', { method: 'POST' }),
-  regulatoryUpdate: () => request('/ai/regulatory-update', { method: 'POST' }),
+  // New AI custom features
+  cosoScoring: () => request('/ai/coso-scoring', { method: 'POST' }),
+  scopeMemo: (data) => request('/ai/scope-memo', { method: 'POST', body: JSON.stringify(data) }),
   riskHeatmap: () => request('/ai/risk-heatmap', { method: 'POST' }),
-  controlEnvironment: () => request('/ai/control-environment', { method: 'POST' }),
+  remediationAnalyzer: () => request('/ai/remediation-analyzer', { method: 'POST' }),
+  workpaperReview: (planId) => request('/ai/workpaper-review', { method: 'POST', body: JSON.stringify({ planId }) }),
+  controlsMonitor: () => request('/ai/controls-monitor', { method: 'POST' }),
+  regulatoryUpdate: () => request('/ai/regulatory-update', { method: 'POST' }),
+  workflowTransition: (entityType, entityId, newState) =>
+    request('/ai/workflow/transition', { method: 'POST', body: JSON.stringify({ entityType, entityId, newState }) }),
+  samplingRecommendation: (data) => request('/ai/sampling-recommendation', { method: 'POST', body: JSON.stringify(data) }),
+  evidenceQuality: (data) => request('/ai/evidence-quality', { method: 'POST', body: JSON.stringify(data) }),
+  anomalyDetection: (data) => request('/ai/anomaly-detection', { method: 'POST', body: JSON.stringify(data) }),
+  getAuditLog: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/ai/audit-log${qs ? '?' + qs : ''}`);
+  },
+
+  // Evidence vault
+  uploadEvidence: (formData) => uploadFile('/evidence/upload', formData),
+  getEvidenceFileUrl: (id) => `${API_BASE}/evidence/file/${id}`,
+
+  // PDF reports
+  getReportPdfUrl: (reportId) => `${API_BASE}/reports/pdf/${reportId}`,
+  getDeficiencyPdfUrl: (deficiencyId) => `${API_BASE}/reports/pdf/deficiency/${deficiencyId}`,
 
   // Dashboard
   getDashboard: () => request('/dashboard'),
