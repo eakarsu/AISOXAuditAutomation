@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Shield, BarChart3, FileCheck, AlertTriangle, ClipboardList, Search, FileText, Users, Monitor, DollarSign, UserCheck, KeyRound, GitBranch, BookOpen, ScrollText, Target, Calendar, Scale, Bell, LogOut, Menu, X, Brain, Sparkles, Upload, Activity, FileSearch, Calculator } from 'lucide-react'
+import { Shield, BarChart3, FileCheck, AlertTriangle, ClipboardList, Search, FileText, Users, Monitor, DollarSign, UserCheck, KeyRound, BookOpen, ScrollText, Target, Calendar, Scale, Bell, LogOut, Menu, X, Brain, Sparkles, Upload, Activity, FileSearch, Calculator } from 'lucide-react'
 import AISidebar from './AISidebar'
 
 const navItems = [
@@ -29,6 +29,7 @@ const navItems = [
   { path: '/regulatory-update', label: 'Regulatory Updates', icon: Bell },
   { path: '/sampling-recommendation', label: 'Sampling Recommendation', icon: Calculator },
   { path: '/evidence-quality', label: 'Evidence Quality', icon: FileSearch },
+  { path: '/key-report-completeness', label: 'Key Report Completeness', icon: FileCheck },
 ]
 
 export default function Layout({ children }) {

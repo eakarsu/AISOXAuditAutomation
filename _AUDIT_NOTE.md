@@ -40,3 +40,18 @@ LEFT-AS-IS. Both pass-2 endpoints are already wired:
 - Nav entries present in `client/src/components/Layout.jsx`.
 - API helpers `aiAPI.samplingRecommendation` and `aiAPI.evidenceQuality` defined in `client/src/services/api.js`, which attaches `Authorization: Bearer <token>` from `localStorage`.
 Idempotent — no changes.
+
+## Apply pass 6 (close-out)
+
+- **Item:** MECHANICAL — Anomaly detection endpoint over GL/AP feeds (schema-light, caller-supplied feed).
+- **File:** `server/routes/ai.js` — appended `POST /api/ai/gl-ap-anomaly-detection`.
+  - Body: `{ feed_type: "GL"|"AP", entries: [{id, date, account, amount, vendor?, description?, approver?}], lookback_period?, materiality_threshold? }`.
+  - Response: `{ anomalies: [{entry_id, anomaly_type, severity, sox_control_implicated, suggested_test, rationale}], summary, recommended_followups }`.
+  - Reuses `queryAI` + `parseAIJson` + `persistAIResult`; auth + aiRateLimiter applied; entries capped at 200; no new tables, no new deps.
+  - Note: pre-existing `POST /api/ai/anomaly-detection` (different shape — `transactions`/`row_indices`) is retained; new endpoint is the schema-light per-entry variant requested.
+- **Syntax:** `node --check server/routes/ai.js` — PASS.
+- **Remaining backlog:**
+  - NEEDS-CREDS: Workiva/AuditBoard integrations.
+  - NEEDS-PRODUCT-DECISION: Approvals/sign-offs workflow.
+  - NEEDS-PRODUCT-DECISION: Multi-year re-test scheduling.
+  - NEEDS-PRODUCT-DECISION: RAG over PCAOB corpus.

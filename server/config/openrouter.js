@@ -26,7 +26,7 @@ function parseAIJson(text) {
 async function queryAI(prompt, systemPrompt = 'You are an expert SOX audit professional and compliance advisor. Always respond with valid JSON when requested.') {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify({
-      model: 'anthropic/claude-3-5-sonnet-20241022',
+      model: process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt }

@@ -940,4 +940,71 @@ Return ONLY JSON:
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// AI: GL/AP anomaly detection — caller-supplied feed, schema-light variant.
+// Body: { feed_type: "GL"|"AP", entries: [{id, date, account, amount, vendor?, description?, approver?}],
+//         lookback_period?, materiality_threshold? }
+// Returns: { anomalies: [{entry_id, anomaly_type, severity, sox_control_implicated, suggested_test, rationale}],
+//            summary, recommended_followups }
+router.post('/gl-ap-anomaly-detection', auth, aiRateLimiter, async (req, res) => {
+  try {
+    if (!hasApiKey()) {
+      return res.status(503).json({ error: 'AI not configured: set OPENROUTER_API_KEY in server environment.' });
+    }
+    const { feed_type, entries, lookback_period, materiality_threshold } = req.body || {};
+    const feed = (feed_type === 'AP' ? 'AP' : 'GL');
+    if (!Array.isArray(entries) || entries.length === 0) {
+      return res.status(400).json({ error: '`entries` (non-empty array) is required.' });
+    }
+    // Cap to first 200 entries to stay within model context.
+    const sample = entries.slice(0, 200);
+    const prompt = `You are a SOX-trained anomaly-detection analyst examining a ${feed} feed. Flag anomalies indicative of fraud, error, or control failure (round-dollar amounts, weekend/holiday/late-night postings, just-below-approval-threshold amounts, duplicate vendors/invoices, unusual or rarely-used GL accounts, manual journal entries, self-approval / preparer=approver, out-of-period postings, velocity spikes, split transactions). Reference the entry by its supplied id.
+Feed: ${feed}
+Lookback period: ${lookback_period || 'unspecified'}
+Materiality threshold: ${materiality_threshold || 'unspecified'}
+
+Entries (JSON, capped at 200 rows):
+${JSON.stringify(sample)}
+
+Return ONLY JSON in this exact shape:
+{
+  "anomalies": [
+    {
+      "entry_id": "<id from input>",
+      "anomaly_type": "round_dollar|weekend_posting|just_below_threshold|duplicate_vendor|duplicate_invoice|unusual_gl_account|manual_je|self_approved|out_of_period|velocity_spike|split_transaction|other",
+      "severity": "Critical|High|Medium|Low",
+      "sox_control_implicated": "<e.g., Segregation of Duties, JE Approval, Vendor Master Maintenance, Period-End Close Cutoff>",
+      "suggested_test": "<concrete audit procedure>",
+      "rationale": "<why this is anomalous, cite specific values>"
+    }
+  ],
+  "summary": {
+    "feed_type": "${feed}",
+    "entries_examined": <number>,
+    "anomalies_flagged": <number>,
+    "by_severity": {"Critical": <number>, "High": <number>, "Medium": <number>, "Low": <number>},
+    "top_control_implications": ["..."]
+  },
+  "recommended_followups": ["..."]
+}`;
+    const aiText = await queryAI(prompt);
+    const parsed = parseAIJson(aiText);
+    if (!aiText.includes('AI Analysis unavailable')) {
+      await persistAIResult(req.user.id, 'gl-ap-anomaly-detection', {
+        feed_type: feed,
+        lookback_period,
+        materiality_threshold,
+        entry_count: entries.length
+      }, parsed || { raw: aiText });
+    }
+    const payload = parsed && typeof parsed === 'object'
+      ? {
+          anomalies: parsed.anomalies || [],
+          summary: parsed.summary || { feed_type: feed, entries_examined: sample.length, anomalies_flagged: (parsed.anomalies || []).length },
+          recommended_followups: parsed.recommended_followups || []
+        }
+      : { anomalies: [], summary: { feed_type: feed, entries_examined: sample.length, anomalies_flagged: 0, raw: aiText }, recommended_followups: [] };
+    res.json(payload);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

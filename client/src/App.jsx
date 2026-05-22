@@ -1,3 +1,5 @@
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -8,6 +10,7 @@ import ControlsMonitor from './pages/ControlsMonitor'
 import RegulatoryUpdate from './pages/RegulatoryUpdate'
 import SamplingRecommendation from './pages/SamplingRecommendation'
 import EvidenceQuality from './pages/EvidenceQuality'
+import KeyReportCompleteness from './pages/KeyReportCompleteness'
 import Layout from './components/Layout'
 import { featureConfigs } from './pages/featureConfigs'
 // === Batch 08 Gaps & Frontend Mounts ===
@@ -36,6 +39,9 @@ function ProtectedRoute({ children }) {
 export default function App() {
   return (
     <Routes>
+        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
+        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
+
       <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/evidence-vault" element={<ProtectedRoute><EvidenceVault /></ProtectedRoute>} />
@@ -44,6 +50,7 @@ export default function App() {
       <Route path="/regulatory-update" element={<ProtectedRoute><RegulatoryUpdate /></ProtectedRoute>} />
       <Route path="/sampling-recommendation" element={<ProtectedRoute><SamplingRecommendation /></ProtectedRoute>} />
       <Route path="/evidence-quality" element={<ProtectedRoute><EvidenceQuality /></ProtectedRoute>} />
+      <Route path="/key-report-completeness" element={<ProtectedRoute><KeyReportCompleteness /></ProtectedRoute>} />
       {Object.entries(featureConfigs).map(([key, config]) => (
         <Route
           key={key}
