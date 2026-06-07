@@ -13,6 +13,8 @@ import EvidenceQuality from './pages/EvidenceQuality'
 import KeyReportCompleteness from './pages/KeyReportCompleteness'
 import Layout from './components/Layout'
 import { featureConfigs } from './pages/featureConfigs'
+import MissingFeaturesHub from './pages/MissingFeaturesHub';
+import ProductionReadiness from './pages/ProductionReadiness';
 // === Batch 08 Gaps & Frontend Mounts ===
 import CfRegulatoryChangeDigestIngestingSecPcaobUpdates from './pages/CfRegulatoryChangeDigestIngestingSecPcaobUpdates'
 import CfAnomalyDetectionInGlPayrollApTransaction from './pages/CfAnomalyDetectionInGlPayrollApTransaction'
@@ -74,7 +76,9 @@ export default function App() {
       <Route path="/gap-no-webhooks-notifications-for-remediation-deadlines-or-new" element={<ProtectedRoute><GapNoWebhooksNotificationsForRemediationDeadlinesOr /></ProtectedRoute>} />
       <Route path="/gap-no-dedicated-audit-trail-subsystem-despite-domain-requirement" element={<ProtectedRoute><GapNoDedicatedAuditTrailSubsystemDespiteDomain /></ProtectedRoute>} />
       <Route path="/gap-no-dashboards-for-executive-reporting-beyond-pdf-export" element={<ProtectedRoute><GapNoDashboardsForExecutiveReportingBeyondPdf /></ProtectedRoute>} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/missing-features" element={<ProtectedRoute><MissingFeaturesHub /></ProtectedRoute>} />
+        <Route path="/production-readiness" element={<ProtectedRoute><ProductionReadiness /></ProtectedRoute>} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   )
 }
