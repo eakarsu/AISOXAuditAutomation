@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { api } from '../services/api'
 import { Loader, Calculator, AlertTriangle } from 'lucide-react'
+import PresetButtons from '../components/PresetButtons'
+
+const PRESETS = [
+  { label: 'Low risk / small population', values: { controlId: '', populationSize: '500', materialityThreshold: '50000', riskLevel: 'low' } },
+  { label: 'Typical control', values: { controlId: '12', populationSize: '5000', materialityThreshold: '100000', riskLevel: 'medium' } },
+  { label: 'High risk / large population', values: { controlId: '', populationSize: '25000', materialityThreshold: '250000', riskLevel: 'high' } },
+  { label: 'Critical financial control', values: { controlId: '1', populationSize: '10000', materialityThreshold: '75000', riskLevel: 'critical' } },
+]
 
 export default function SamplingRecommendation() {
   const [form, setForm] = useState({
@@ -47,6 +55,7 @@ export default function SamplingRecommendation() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 mb-6 space-y-4">
+        <PresetButtons presets={PRESETS} onApply={(v) => setForm((f) => ({ ...f, ...v }))} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Control ID (optional)</label>

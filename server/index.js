@@ -34,8 +34,10 @@ app.use('/api/auth', authRouter);
 // AI routes
 app.use('/api/ai', aiRouter);
 
-// Evidence vault (file upload)
+// Evidence vault (file upload) — handles /upload and /file/:id
 app.use('/api/evidence', evidenceVaultRouter);
+// Evidence CRUD (list/create/update/delete) — falls through from the vault router above
+app.use('/api/evidence', createCrudRouter('evidence', 'evidence_id'));
 
 // PDF Reports
 app.use('/api/reports', pdfReportRouter);

@@ -1,13 +1,19 @@
 // // === Batch 08 Gaps & Frontend Mounts ===
 // Feature: Remediation tracking dashboard with timeline view and predictive close dates
 import { useState } from 'react'
+import PresetButtons from '../components/PresetButtons'
 
-const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || 'http://localhost:5001'
+const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || ''
 
 function getHeaders() {
   const token = (typeof localStorage !== 'undefined' && localStorage.getItem('token')) || ''
   return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
 }
+
+const PRESETS = [
+  { label: "Predict close dates", values: { prompt: "Given 8 open remediations with varying owners and severities, predict realistic close dates and flag at-risk items." } },
+  { label: "Timeline view", values: { prompt: "Summarize remediation progress as a timeline and highlight overdue items needing escalation." } },
+]
 
 export default function CfRemediationTrackingDashboardWithTimelineViewAnd() {
   const [input, setInput] = useState('')
@@ -45,6 +51,7 @@ export default function CfRemediationTrackingDashboardWithTimelineViewAnd() {
         <p className="text-slate-500 text-sm mt-1">Batch 08 · cfs · AISOXAuditAutomation</p>
       </div>
       <form onSubmit={submit} className="bg-white border border-slate-200 rounded-xl p-5 mb-4">
+        <PresetButtons presets={PRESETS} onApply={(v) => setInput(v.prompt)} />
         <label className="block text-sm font-medium text-slate-700 mb-1">Input / Prompt</label>
         <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500" rows={6}
           value={input} onChange={(e) => setInput(e.target.value)} placeholder="Describe the data or context for this feature..." />

@@ -1,12 +1,19 @@
 import { useState } from 'react'
 import { api } from '../services/api'
 import { Loader, Activity, AlertTriangle } from 'lucide-react'
+import PresetButtons from '../components/PresetButtons'
 
 const SAMPLE_TX = `[
   {"row":1,"date":"2025-12-31","gl_account":"6100","vendor":"Acme Corp","amount":9999,"je_type":"manual","posted_by":"u1","approved_by":"u1"},
   {"row":2,"date":"2026-01-04","gl_account":"6100","vendor":"Acme Corp","amount":50000,"je_type":"auto","posted_by":"u2","approved_by":"u3"},
   {"row":3,"date":"2026-01-05","gl_account":"6100","vendor":"Acme Corp","amount":50000,"je_type":"auto","posted_by":"u2","approved_by":"u3"}
 ]`
+
+const PRESETS = [
+  { label: 'GL round-dollar', values: { feed: 'GL', period: '2026-Q1', materialityThreshold: '10000', contextNotes: 'Focus on round-dollar, after-hours, and self-approved postings', transactionsJson: SAMPLE_TX } },
+  { label: 'Payroll outliers', values: { feed: 'Payroll', period: '2026-03', materialityThreshold: '5000', contextNotes: 'Look for duplicate bank accounts and off-cycle payments', transactionsJson: '[\n  {"row":1,"employee":"E100","net_pay":4200,"bank":"x1"},\n  {"row":2,"employee":"E101","net_pay":98000,"bank":"x1"}\n]' } },
+  { label: 'AP duplicates', values: { feed: 'AP', period: '2026-Q1', materialityThreshold: '2500', contextNotes: 'Detect duplicate or split vendor payments', transactionsJson: '[\n  {"row":1,"vendor":"Acme","invoice":"INV-9","amount":5000},\n  {"row":2,"vendor":"Acme","invoice":"INV-9","amount":5000}\n]' } },
+]
 
 export default function AnomalyDetection() {
   const [form, setForm] = useState({
@@ -73,6 +80,7 @@ export default function AnomalyDetection() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 mb-6 space-y-4">
+        <PresetButtons presets={PRESETS} onApply={(v) => setForm((f) => ({ ...f, ...v }))} />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Feed</label>

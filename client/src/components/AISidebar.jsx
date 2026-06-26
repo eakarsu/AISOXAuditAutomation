@@ -117,6 +117,21 @@ export default function AISidebar({ isOpen, onClose }) {
     setFeatureDataLoading(false)
   }
 
+  // Robustly pull the AI payload out of a response regardless of which key
+  // the backend used. Falls back to the first meaningful value so a key
+  // mismatch can never blank the panel.
+  const extractAIContent = (data, resultKey) => {
+    if (data == null) return ''
+    if (typeof data !== 'object') return data
+    const preferred = [resultKey, 'analysis', 'narrative', 'summary', 'suggestions',
+      'memo', 'answer', 'scores', 'heatmap', 'briefing', 'assessment', 'result']
+    for (const k of preferred) {
+      if (k && data[k] != null && data[k] !== '') return data[k]
+    }
+    const vals = Object.values(data).filter(v => v != null && v !== '')
+    return vals[0] ?? ''
+  }
+
   const handleToolClick = async (tool) => {
     setActiveTool(tool)
     setActiveFeatureTool(null)
@@ -126,7 +141,7 @@ export default function AISidebar({ isOpen, onClose }) {
       setLoading(true)
       try {
         const data = await tool.action()
-        const content = data[tool.resultKey] || ''
+        const content = extractAIContent(data, tool.resultKey)
         setResult(content)
         setHistory(prev => [{ tool: tool.label, content, time: new Date() }, ...prev].slice(0, 20))
       } catch (err) {
@@ -150,7 +165,7 @@ export default function AISidebar({ isOpen, onClose }) {
     setResult('')
     try {
       const data = await activeFeatureTool.action(parseInt(selectedItemId))
-      const content = data.analysis || data.narrative || data.summary || data.suggestions || data.memo || ''
+      const content = extractAIContent(data, activeFeatureTool.resultKey)
       setResult(content)
       setHistory(prev => [{ tool: activeFeatureTool.label, content, time: new Date() }, ...prev].slice(0, 20))
     } catch (err) {
@@ -166,7 +181,7 @@ export default function AISidebar({ isOpen, onClose }) {
     setResult('')
     try {
       const data = await activeFeatureTool.action(item.id)
-      const content = data.analysis || data.narrative || data.summary || data.suggestions || data.memo || ''
+      const content = extractAIContent(data, activeFeatureTool.resultKey)
       setResult(content)
       setHistory(prev => [{ tool: activeFeatureTool.label, content, time: new Date() }, ...prev].slice(0, 20))
     } catch (err) {

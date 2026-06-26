@@ -1,13 +1,19 @@
 // // === Batch 08 Gaps & Frontend Mounts ===
 // Feature: No sampling recommendation engine (test size based on risk/materiality)
 import { useState } from 'react'
+import PresetButtons from '../components/PresetButtons'
 
-const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || 'http://localhost:5001'
+const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || ''
 
 function getHeaders() {
   const token = (typeof localStorage !== 'undefined' && localStorage.getItem('token')) || ''
   return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
 }
+
+const PRESETS = [
+  { label: "Population of 5,000", values: { prompt: "Recommend a sample size and methodology for a control with a population of 5,000 transactions, medium risk, materiality $100,000." } },
+  { label: "High-risk control", values: { prompt: "Recommend sampling for a high-risk manual journal-entry control with a population of 1,200 entries." } },
+]
 
 export default function GapNoSamplingRecommendationEngineTestSizeBased() {
   const [input, setInput] = useState('')
@@ -45,6 +51,7 @@ export default function GapNoSamplingRecommendationEngineTestSizeBased() {
         <p className="text-slate-500 text-sm mt-1">Batch 08 · gap_ai · AISOXAuditAutomation</p>
       </div>
       <form onSubmit={submit} className="bg-white border border-slate-200 rounded-xl p-5 mb-4">
+        <PresetButtons presets={PRESETS} onApply={(v) => setInput(v.prompt)} />
         <label className="block text-sm font-medium text-slate-700 mb-1">Input / Prompt</label>
         <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500" rows={6}
           value={input} onChange={(e) => setInput(e.target.value)} placeholder="Describe the data or context for this feature..." />

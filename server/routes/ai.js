@@ -1007,4 +1007,93 @@ Return ONLY JSON in this exact shape:
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// AI: Executive dashboard summary - professional narrative prose (NOT JSON)
+router.post('/dashboard-summary', auth, aiRateLimiter, async (req, res) => {
+  try {
+    const [controls, risks, deficiencies, evidence, compliance, remediations] = await Promise.all([
+      pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE effectiveness = 'Effective') as effective, COUNT(*) FILTER (WHERE effectiveness = 'Ineffective') as ineffective FROM controls"),
+      pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE status = 'Open') as open, AVG(risk_score) as avg_score FROM risk_assessments"),
+      pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE severity = 'High') as high, COUNT(*) FILTER (WHERE severity = 'Critical') as critical FROM deficiencies WHERE status != 'Closed'"),
+      pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE status = 'Approved') as approved FROM evidence"),
+      pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE status = 'Completed') as completed FROM compliance_items"),
+      pool.query("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE status = 'Completed') as completed FROM remediations"),
+    ]);
+    const s = {
+      controls: controls.rows[0], risks: risks.rows[0], deficiencies: deficiencies.rows[0],
+      evidence: evidence.rows[0], compliance: compliance.rows[0], remediations: remediations.rows[0],
+    };
+    const prompt = `Write a concise, professional executive summary briefing an audit committee on the current SOX compliance program. Use 2-3 short paragraphs of plain narrative prose. Do NOT use JSON, code blocks, headings, or key:value lists.
+
+Current metrics:
+- Controls: ${s.controls.total} total, ${s.controls.effective} effective, ${s.controls.ineffective} ineffective
+- Risk assessments: ${s.risks.total} total, ${s.risks.open} open, average risk score ${Number(s.risks.avg_score || 0).toFixed(1)}
+- Open deficiencies: ${s.deficiencies.total} (${s.deficiencies.high} high, ${s.deficiencies.critical} critical)
+- Evidence: ${s.evidence.total} items, ${s.evidence.approved} approved
+- Compliance items: ${s.compliance.total} total, ${s.compliance.completed} completed
+- Remediations: ${s.remediations.total} total, ${s.remediations.completed} completed
+
+Cover overall control posture, the most significant risks/deficiencies, and recommended focus areas.`;
+    const summary = await queryAI(prompt, 'You are an expert SOX audit professional writing executive-level narrative summaries. Respond in clear, professional prose only — never JSON, bullet lists, or key/value dumps.');
+    await persistAIResult(req.user.id, 'dashboard-summary', s, { summary });
+    res.json({ summary });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Generic per-entity AI analysis for resources without a bespoke endpoint
+const ANALYZE_ENTITY_TABLES = {
+  'evidence': { table: 'evidence', label: 'audit evidence item' },
+  'compliance': { table: 'compliance_items', label: 'compliance requirement' },
+  'management-reviews': { table: 'management_reviews', label: 'management review' },
+  'access-reviews': { table: 'access_reviews', label: 'user access review' },
+  'change-requests': { table: 'change_requests', label: 'change request' },
+  'remediations': { table: 'remediations', label: 'remediation item' },
+};
+
+router.post('/analyze-entity', auth, aiRateLimiter, async (req, res) => {
+  try {
+    const { resource, id } = req.body;
+    const cfg = ANALYZE_ENTITY_TABLES[resource];
+    if (!cfg) return res.status(400).json({ error: 'Unsupported resource: ' + resource });
+    const result = await pool.query(`SELECT * FROM ${cfg.table} WHERE id = $1`, [id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Record not found' });
+
+    const row = result.rows[0];
+    const details = Object.entries(row)
+      .filter(([k, v]) => v != null && v !== '' && !['id', 'created_at', 'updated_at', 'ai_analysis', 'ai_summary'].includes(k))
+      .map(([k, v]) => `${k.replace(/_/g, ' ')}: ${v}`)
+      .join('\n');
+
+    const prompt = `You are an expert SOX auditor. Analyze the following ${cfg.label} and provide a professional assessment. Respond ONLY with JSON in this shape:
+{
+  "assessment": "overall professional assessment",
+  "key_risks": ["..."],
+  "strengths": ["..."],
+  "recommendations": ["..."],
+  "summary": "concise narrative summary"
+}
+
+${cfg.label} details:
+${details}`;
+
+    const aiText = await queryAI(prompt);
+    const parsed = parseAIJson(aiText);
+    await persistAIResult(req.user.id, 'analyze-entity:' + resource, { id }, parsed || { raw: aiText });
+    res.json({ analysis: parsed || aiText });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// AI: free-form Q&A assistant - professional prose (NOT JSON)
+router.post('/ask', auth, aiRateLimiter, async (req, res) => {
+  try {
+    const { question } = req.body;
+    if (!question || !question.trim()) return res.status(400).json({ error: 'Question is required' });
+    const answer = await queryAI(
+      `Answer the following SOX, audit, or compliance question professionally and concisely:\n\n${question}`,
+      'You are an expert SOX audit and compliance advisor. Respond in clear, professional prose only — never JSON or code blocks.'
+    );
+    await persistAIResult(req.user.id, 'ask', { question }, { answer });
+    res.json({ answer, summary: answer });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

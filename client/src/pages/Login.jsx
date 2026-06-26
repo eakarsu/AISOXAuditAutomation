@@ -12,7 +12,7 @@ export default function Login() {
   const navigate = useNavigate()
 
   const handleAutoFill = () => {
-    setEmail('admin@soxaudit.com')
+    setEmail('admin@sox.local')
     setPassword('admin123')
   }
 

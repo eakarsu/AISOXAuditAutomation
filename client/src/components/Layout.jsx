@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Shield, BarChart3, FileCheck, AlertTriangle, ClipboardList, Search, FileText, Users, Monitor, DollarSign, UserCheck, KeyRound, BookOpen, ScrollText, Target, Calendar, Scale, Bell, LogOut, Menu, X, Brain, Sparkles, Upload, Activity, FileSearch, Calculator } from 'lucide-react'
+import { Shield, BarChart3, FileCheck, AlertTriangle, ClipboardList, Search, FileText, Users, Monitor, DollarSign, UserCheck, KeyRound, BookOpen, ScrollText, Target, Calendar, Scale, Bell, LogOut, Menu, X, Brain, Sparkles, Upload, Activity, FileSearch, Calculator, GitBranch } from 'lucide-react'
 import AISidebar from './AISidebar'
 
 const navItems = [

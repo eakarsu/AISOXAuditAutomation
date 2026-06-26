@@ -127,7 +127,7 @@ export default function FeaturePage({ config }) {
     setLoading(true)
     try {
       const data = await api.getAll(resource)
-      setItems(data)
+      setItems(Array.isArray(data) ? data : (data?.data ?? []))
     } catch (err) {
       console.error(err)
     }

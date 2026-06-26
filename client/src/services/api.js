@@ -96,6 +96,23 @@ export const api = {
   getReportPdfUrl: (reportId) => `${API_BASE}/reports/pdf/${reportId}`,
   getDeficiencyPdfUrl: (deficiencyId) => `${API_BASE}/reports/pdf/deficiency/${deficiencyId}`,
 
+  // Per-entity AI analysis (generic backend endpoint)
+  analyzeEvidence: (id) => request('/ai/analyze-entity', { method: 'POST', body: JSON.stringify({ resource: 'evidence', id }) }),
+  analyzeCompliance: (id) => request('/ai/analyze-entity', { method: 'POST', body: JSON.stringify({ resource: 'compliance', id }) }),
+  analyzeReview: (id) => request('/ai/analyze-entity', { method: 'POST', body: JSON.stringify({ resource: 'management-reviews', id }) }),
+  analyzeAccess: (id) => request('/ai/analyze-entity', { method: 'POST', body: JSON.stringify({ resource: 'access-reviews', id }) }),
+  analyzeChange: (id) => request('/ai/analyze-entity', { method: 'POST', body: JSON.stringify({ resource: 'change-requests', id }) }),
+  analyzeRemediation: (id) => request('/ai/analyze-entity', { method: 'POST', body: JSON.stringify({ resource: 'remediations', id }) }),
+
+  // AI assistant + dashboard
+  askAI: (question) => request('/ai/ask', { method: 'POST', body: JSON.stringify({ question }) }),
+  controlEnvironment: async () => {
+    const d = await request('/ai/coso-scoring', { method: 'POST' });
+    return { analysis: d.scores || d.raw || d };
+  },
+  generateScopeMemo: () => request('/ai/scope-memo', { method: 'POST' }),
+
   // Dashboard
   getDashboard: () => request('/dashboard'),
+  dashboardSummary: () => request('/ai/dashboard-summary', { method: 'POST' }),
 };

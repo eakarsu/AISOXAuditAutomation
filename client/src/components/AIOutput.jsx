@@ -19,8 +19,8 @@ export default function AIOutput({ content, loading, title = 'AI Analysis' }) {
 
   if (!content) return null
 
-  // Parse the AI content into sections
-  const sections = parseAIContent(content)
+  // Normalize any shape (object, JSON string, or markdown text) into clean sections
+  const sections = buildSections(content)
 
   return (
     <div className="ai-output mt-4">
@@ -53,7 +53,63 @@ export default function AIOutput({ content, loading, title = 'AI Analysis' }) {
   )
 }
 
-function parseAIContent(content) {
+function humanizeKey(key) {
+  return String(key)
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
+}
+
+// Turn whatever the AI returned into a flat list of professional sections.
+// Never renders raw JSON braces to the user.
+function buildSections(content) {
+  let data = content
+
+  if (typeof content === 'string') {
+    const t = content.trim()
+    // Strip code fences the model sometimes wraps JSON in
+    const unfenced = t.replace(/^```(?:json)?\s*/i, '').replace(/```$/, '').trim()
+    if ((unfenced.startsWith('{') && unfenced.endsWith('}')) ||
+        (unfenced.startsWith('[') && unfenced.endsWith(']'))) {
+      try { data = JSON.parse(unfenced) } catch { return parseMarkdown(content) }
+    } else {
+      return parseMarkdown(content)
+    }
+  }
+
+  if (data && typeof data === 'object') return objectToSections(data)
+  return parseMarkdown(String(data ?? ''))
+}
+
+function objectToSections(obj) {
+  const out = []
+  const entries = Array.isArray(obj)
+    ? obj.map((v, i) => [String(i + 1), v])
+    : Object.entries(obj)
+
+  for (const [key, value] of entries) {
+    if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) continue
+
+    if (Array.isArray(value)) {
+      out.push({ type: 'heading', content: humanizeKey(key) })
+      for (const v of value) {
+        if (v && typeof v === 'object') {
+          out.push({ type: 'bullet', content: Object.values(v).filter(Boolean).join(' — ') })
+        } else {
+          out.push({ type: 'bullet', content: String(v) })
+        }
+      }
+    } else if (typeof value === 'object') {
+      out.push({ type: 'heading', content: humanizeKey(key) })
+      out.push(...objectToSections(value))
+    } else {
+      out.push({ type: 'heading', content: humanizeKey(key) })
+      out.push({ type: 'paragraph', content: String(value) })
+    }
+  }
+  return out
+}
+
+function parseMarkdown(content) {
   if (!content) return []
   const lines = content.split('\n').filter(l => l.trim())
   return lines.map(line => {

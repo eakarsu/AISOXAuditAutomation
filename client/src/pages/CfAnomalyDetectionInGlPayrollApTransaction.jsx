@@ -1,13 +1,20 @@
 // // === Batch 08 Gaps & Frontend Mounts ===
 // Feature: Anomaly detection in GL/payroll/AP transaction feeds for control gap discovery
 import { useState } from 'react'
+import PresetButtons from '../components/PresetButtons'
 
-const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || 'http://localhost:5001'
+const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || ''
 
 function getHeaders() {
   const token = (typeof localStorage !== 'undefined' && localStorage.getItem('token')) || ''
   return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
 }
+
+const PRESETS = [
+  { label: "GL journal anomalies", values: { prompt: "Detect anomalies in a batch of general-ledger journal entries: flag round-dollar, after-hours, and duplicate postings with risk scores." } },
+  { label: "Payroll outliers", values: { prompt: "Analyze payroll runs for outliers such as duplicate bank accounts, off-cycle payments, and unusually large net pay changes." } },
+  { label: "AP duplicates", values: { prompt: "Identify potential duplicate or split vendor payments in accounts payable and explain the indicators." } },
+]
 
 export default function CfAnomalyDetectionInGlPayrollApTransaction() {
   const [input, setInput] = useState('')
@@ -45,6 +52,7 @@ export default function CfAnomalyDetectionInGlPayrollApTransaction() {
         <p className="text-slate-500 text-sm mt-1">Batch 08 · cfs · AISOXAuditAutomation</p>
       </div>
       <form onSubmit={submit} className="bg-white border border-slate-200 rounded-xl p-5 mb-4">
+        <PresetButtons presets={PRESETS} onApply={(v) => setInput(v.prompt)} />
         <label className="block text-sm font-medium text-slate-700 mb-1">Input / Prompt</label>
         <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500" rows={6}
           value={input} onChange={(e) => setInput(e.target.value)} placeholder="Describe the data or context for this feature..." />

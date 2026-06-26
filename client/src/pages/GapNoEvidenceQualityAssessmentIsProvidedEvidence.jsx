@@ -1,13 +1,19 @@
 // // === Batch 08 Gaps & Frontend Mounts ===
 // Feature: No evidence quality assessment (is provided evidence sufficient/appropriate?)
 import { useState } from 'react'
+import PresetButtons from '../components/PresetButtons'
 
-const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || 'http://localhost:5001'
+const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || ''
 
 function getHeaders() {
   const token = (typeof localStorage !== 'undefined' && localStorage.getItem('token')) || ''
   return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
 }
+
+const PRESETS = [
+  { label: "Assess an invoice", values: { prompt: "Assess whether a vendor invoice PDF dated 2026-03-12, approved by the AP manager, is sufficient and appropriate evidence for the three-way-match control." } },
+  { label: "Screenshot evidence", values: { prompt: "Evaluate the adequacy of a system screenshot as evidence for an access-review control and note any weaknesses." } },
+]
 
 export default function GapNoEvidenceQualityAssessmentIsProvidedEvidence() {
   const [input, setInput] = useState('')
@@ -45,6 +51,7 @@ export default function GapNoEvidenceQualityAssessmentIsProvidedEvidence() {
         <p className="text-slate-500 text-sm mt-1">Batch 08 · gap_ai · AISOXAuditAutomation</p>
       </div>
       <form onSubmit={submit} className="bg-white border border-slate-200 rounded-xl p-5 mb-4">
+        <PresetButtons presets={PRESETS} onApply={(v) => setInput(v.prompt)} />
         <label className="block text-sm font-medium text-slate-700 mb-1">Input / Prompt</label>
         <textarea className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500" rows={6}
           value={input} onChange={(e) => setInput(e.target.value)} placeholder="Describe the data or context for this feature..." />

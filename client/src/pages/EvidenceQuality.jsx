@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { api } from '../services/api'
 import { Loader, FileSearch, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react'
+import PresetButtons from '../components/PresetButtons'
+
+const PRESETS = [
+  { label: 'Sufficient invoice', values: { controlId: '', evidenceDescription: 'Signed vendor invoice matched to PO and receiving report, approved by AP manager, dated 2026-03-12', evidenceMetadata: '{"source":"AP system","date":"2026-03-12","approver":"AP Manager"}' } },
+  { label: 'Weak screenshot', values: { controlId: '', evidenceDescription: 'Undated screenshot of a configuration screen with no approver or system context', evidenceMetadata: '{"source":"screenshot"}' } },
+  { label: 'Access review export', values: { controlId: '12', evidenceDescription: 'Quarterly user access review export listing 240 users with manager sign-off', evidenceMetadata: '{"period":"Q1 2026","reviewer":"IT Security"}' } },
+]
 
 export default function EvidenceQuality() {
   const [form, setForm] = useState({
@@ -60,6 +67,7 @@ export default function EvidenceQuality() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 mb-6 space-y-4">
+        <PresetButtons presets={PRESETS} onApply={(v) => setForm((f) => ({ ...f, ...v }))} />
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Control ID (optional)</label>
           <input
