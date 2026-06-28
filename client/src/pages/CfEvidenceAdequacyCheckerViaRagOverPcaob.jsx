@@ -2,6 +2,7 @@
 // Feature: Evidence adequacy checker via RAG over PCAOB/COSO guidance
 import { useState } from 'react'
 import PresetButtons from '../components/PresetButtons'
+import AIOutput from '../components/AIOutput'
 
 const API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || ''
 
@@ -66,8 +67,7 @@ export default function CfEvidenceAdequacyCheckerViaRagOverPcaob() {
       {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm mb-4">{error}</div>}
       {result && (
         <div className="bg-white border border-slate-200 rounded-xl p-5 mb-4">
-          <h2 className="font-semibold text-slate-800 mb-2">Result</h2>
-          <pre className="text-xs bg-slate-50 p-3 rounded overflow-x-auto whitespace-pre-wrap">{JSON.stringify(result, null, 2)}</pre>
+          <AIOutput content={result?.result || result} title="AI Analysis" />
         </div>
       )}
       {history.length > 0 && (
@@ -77,7 +77,7 @@ export default function CfEvidenceAdequacyCheckerViaRagOverPcaob() {
             {history.map((h) => (
               <li key={h.id} className="text-xs text-slate-600 border-b border-slate-100 pb-2">
                 <div className="text-slate-400">{new Date(h.created_at).toLocaleString()}</div>
-                <div className="truncate">{typeof h.output === 'string' ? h.output : JSON.stringify(h.output).slice(0, 200)}</div>
+                <div className="truncate">AI analysis result saved</div>
               </li>
             ))}
           </ul>

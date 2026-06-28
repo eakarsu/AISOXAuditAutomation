@@ -15,6 +15,7 @@ import Layout from './components/Layout'
 import { featureConfigs } from './pages/featureConfigs'
 import MissingFeaturesHub from './pages/MissingFeaturesHub';
 import ProductionReadiness from './pages/ProductionReadiness';
+import SoxOpsCenter from './pages/SoxOpsCenter';
 // === Batch 08 Gaps & Frontend Mounts ===
 import CfRegulatoryChangeDigestIngestingSecPcaobUpdates from './pages/CfRegulatoryChangeDigestIngestingSecPcaobUpdates'
 import CfAnomalyDetectionInGlPayrollApTransaction from './pages/CfAnomalyDetectionInGlPayrollApTransaction'
@@ -77,6 +78,8 @@ export default function App() {
       <Route path="/gap-no-dedicated-audit-trail-subsystem-despite-domain-requirement" element={<ProtectedRoute><GapNoDedicatedAuditTrailSubsystemDespiteDomain /></ProtectedRoute>} />
       <Route path="/gap-no-dashboards-for-executive-reporting-beyond-pdf-export" element={<ProtectedRoute><GapNoDashboardsForExecutiveReportingBeyondPdf /></ProtectedRoute>} />
         <Route path="/missing-features" element={<ProtectedRoute><MissingFeaturesHub /></ProtectedRoute>} />
+        <Route path="/sox-ops/:moduleKey" element={<ProtectedRoute><SoxOpsCenter /></ProtectedRoute>} />
+        <Route path="/sox-ops" element={<ProtectedRoute><SoxOpsCenter /></ProtectedRoute>} />
         <Route path="/production-readiness" element={<ProtectedRoute><ProductionReadiness /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

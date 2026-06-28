@@ -115,4 +115,14 @@ export const api = {
   // Dashboard
   getDashboard: () => request('/dashboard'),
   dashboardSummary: () => request('/ai/dashboard-summary', { method: 'POST' }),
+
+  // SOX Ops Center
+  getSoxOpsSummary: () => request('/sox-ops/summary'),
+  getSoxOpsModule: (moduleKey) => request(`/sox-ops/${moduleKey}`),
+  runSoxOpsAction: (moduleKey, id) => request(`/sox-ops/${moduleKey}/${id}/run`, { method: 'POST' }),
+  updateSoxOpsRow: (moduleKey, id, data) => request(`/sox-ops/${moduleKey}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteSoxOpsRow: (moduleKey, id) => request(`/sox-ops/${moduleKey}/${id}`, { method: 'DELETE' }),
+
+  // System Chat
+  systemChat: (message, context = {}) => request('/system-chat/message', { method: 'POST', body: JSON.stringify({ message, context }) }),
 };

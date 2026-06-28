@@ -90,6 +90,8 @@ app.get('/api/dashboard', require('./middleware/auth'), async (req, res) => {
 
 app.use('/api/regulatory-digest', require('./routes/regulatoryDigest')); app.use('/api/anomaly-detection', require('./routes/anomalyDetection')); app.use('/api/remediation-tracking', require('./routes/remediationTracking')); app.use('/api/multi-year-audit-plan', require('./routes/multiYearAuditPlan')); app.use('/api/evidence-adequacy', require('./routes/evidenceAdequacy')); app.use('/api/continuous-controls-monitor', require('./routes/continuousControlsMonitor'));
 app.use('/api/key-report-completeness', require('./routes/keyReportCompleteness'));
+app.use('/api/sox-ops', require('./routes/soxOps'));
+app.use('/api/system-chat', require('./routes/systemChat'));
 
 // === Batch 08 Gaps & Frontend Mounts ===
 app.use('/api/gap-no-sampling-recommendation-engine-test-size-based-on', require('./routes/gapNoSamplingRecommendationEngineTestSizeBasedOn'));

@@ -54,6 +54,7 @@ export default function AIOutput({ content, loading, title = 'AI Analysis' }) {
 }
 
 function humanizeKey(key) {
+  if (String(key).toLowerCase() === 'raw') return 'Analysis'
   return String(key)
     .replace(/[_-]+/g, ' ')
     .replace(/\b\w/g, c => c.toUpperCase())
@@ -65,18 +66,12 @@ function buildSections(content) {
   let data = content
 
   if (typeof content === 'string') {
-    const t = content.trim()
-    // Strip code fences the model sometimes wraps JSON in
-    const unfenced = t.replace(/^```(?:json)?\s*/i, '').replace(/```$/, '').trim()
-    if ((unfenced.startsWith('{') && unfenced.endsWith('}')) ||
-        (unfenced.startsWith('[') && unfenced.endsWith(']'))) {
-      try { data = JSON.parse(unfenced) } catch { return parseMarkdown(content) }
-    } else {
-      return parseMarkdown(content)
-    }
+    const parsed = parseStructuredString(content)
+    if (parsed) data = parsed
+    else return parseMarkdown(stripFences(content))
   }
 
-  if (data && typeof data === 'object') return objectToSections(data)
+  if (data && typeof data === 'object') return objectToSections(normalizeStructuredData(data))
   return parseMarkdown(String(data ?? ''))
 }
 
@@ -84,7 +79,7 @@ function objectToSections(obj) {
   const out = []
   const entries = Array.isArray(obj)
     ? obj.map((v, i) => [String(i + 1), v])
-    : Object.entries(obj)
+    : Object.entries(obj).filter(([key]) => !isTransportKey(key))
 
   for (const [key, value] of entries) {
     if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) continue
@@ -93,9 +88,11 @@ function objectToSections(obj) {
       out.push({ type: 'heading', content: humanizeKey(key) })
       for (const v of value) {
         if (v && typeof v === 'object') {
-          out.push({ type: 'bullet', content: Object.values(v).filter(Boolean).join(' — ') })
+          const summary = compactObjectSummary(v)
+          if (summary) out.push({ type: 'bullet', content: summary })
+          else out.push(...objectToSections(v))
         } else {
-          out.push({ type: 'bullet', content: String(v) })
+          out.push({ type: 'bullet', content: cleanText(v) })
         }
       }
     } else if (typeof value === 'object') {
@@ -103,15 +100,86 @@ function objectToSections(obj) {
       out.push(...objectToSections(value))
     } else {
       out.push({ type: 'heading', content: humanizeKey(key) })
-      out.push({ type: 'paragraph', content: String(value) })
+      out.push({ type: 'paragraph', content: cleanText(value) })
     }
   }
   return out
 }
 
+function isTransportKey(key) {
+  return ['success', 'ok', 'feature', 'kind', 'slug', 'project'].includes(String(key).toLowerCase())
+}
+
+function stripFences(value) {
+  return String(value || '')
+    .trim()
+    .replace(/^```(?:json|JSON)?\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim()
+}
+
+function parseStructuredString(value) {
+  const text = String(value || '').trim()
+  if (!text) return null
+
+  const unfenced = stripFences(text)
+  const candidates = [unfenced]
+
+  const fenced = text.match(/```(?:json|JSON)?\s*([\s\S]*?)```/)
+  if (fenced?.[1]) candidates.push(fenced[1].trim())
+
+  const firstObject = text.indexOf('{')
+  const lastObject = text.lastIndexOf('}')
+  if (firstObject !== -1 && lastObject > firstObject) candidates.push(text.slice(firstObject, lastObject + 1))
+
+  const firstArray = text.indexOf('[')
+  const lastArray = text.lastIndexOf(']')
+  if (firstArray !== -1 && lastArray > firstArray) candidates.push(text.slice(firstArray, lastArray + 1))
+
+  for (const candidate of candidates) {
+    const trimmed = candidate.trim()
+    if (!trimmed || !/^[{[]/.test(trimmed)) continue
+    try { return JSON.parse(trimmed) } catch (_) {}
+  }
+  return null
+}
+
+function normalizeStructuredData(value) {
+  if (Array.isArray(value)) return value.map(normalizeStructuredData)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nested]) => [key, normalizeStructuredData(nested)])
+    )
+  }
+  if (typeof value === 'string') {
+    const parsed = parseStructuredString(value)
+    return parsed ? normalizeStructuredData(parsed) : stripFences(value)
+  }
+  return value
+}
+
+function cleanText(value) {
+  if (value == null) return ''
+  if (typeof value === 'object') return compactObjectSummary(value)
+  return stripFences(String(value)).replace(/\*\*/g, '')
+}
+
+function compactObjectSummary(obj) {
+  if (!obj || typeof obj !== 'object') return ''
+  return Object.entries(obj)
+    .filter(([, v]) => v != null && v !== '')
+    .map(([k, v]) => {
+      if (Array.isArray(v)) return `${humanizeKey(k)}: ${v.map(cleanText).join(', ')}`
+      if (typeof v === 'object') return `${humanizeKey(k)}: ${compactObjectSummary(v)}`
+      return `${humanizeKey(k)}: ${cleanText(v)}`
+    })
+    .filter(Boolean)
+    .join(' — ')
+}
+
 function parseMarkdown(content) {
   if (!content) return []
-  const lines = content.split('\n').filter(l => l.trim())
+  const lines = stripFences(content).split('\n').filter(l => l.trim() && !/^```/.test(l.trim()))
   return lines.map(line => {
     const trimmed = line.trim()
     if (/^#{1,3}\s/.test(trimmed) || /^\*\*[^*]+\*\*\s*$/.test(trimmed) || /^\d+\.\s+\*\*/.test(trimmed)) {

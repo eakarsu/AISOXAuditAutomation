@@ -23,7 +23,7 @@ function parseAIJson(text) {
   }
 }
 
-async function queryAI(prompt, systemPrompt = 'You are an expert SOX audit professional and compliance advisor. Always respond with valid JSON when requested.') {
+async function queryAI(prompt, systemPrompt = 'You are an expert SOX audit professional and compliance advisor. Always respond with valid JSON when requested.', aiOptions = {}) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify({
       model: process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5',
@@ -31,11 +31,11 @@ async function queryAI(prompt, systemPrompt = 'You are an expert SOX audit profe
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt }
       ],
-      max_tokens: 2000,
-      temperature: 0.3
+      max_tokens: aiOptions.maxTokens || 2000,
+      temperature: aiOptions.temperature ?? 0.3
     });
 
-    const options = {
+    const requestOptions = {
       hostname: 'openrouter.ai',
       path: '/api/v1/chat/completions',
       method: 'POST',
@@ -47,7 +47,7 @@ async function queryAI(prompt, systemPrompt = 'You are an expert SOX audit profe
       }
     };
 
-    const req = https.request(options, (res) => {
+    const req = https.request(requestOptions, (res) => {
       let body = '';
       res.on('data', (chunk) => body += chunk);
       res.on('end', () => {

@@ -1,10 +1,23 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Shield, BarChart3, FileCheck, AlertTriangle, ClipboardList, Search, FileText, Users, Monitor, DollarSign, UserCheck, KeyRound, BookOpen, ScrollText, Target, Calendar, Scale, Bell, LogOut, Menu, X, Brain, Sparkles, Upload, Activity, FileSearch, Calculator, GitBranch } from 'lucide-react'
+import { Shield, BarChart3, FileCheck, AlertTriangle, ClipboardList, Search, FileText, Users, Monitor, DollarSign, UserCheck, KeyRound, BookOpen, ScrollText, Target, Calendar, Scale, Bell, LogOut, Menu, X, Brain, Sparkles, Upload, Activity, FileSearch, Calculator, GitBranch, Workflow, Send, CheckCircle } from 'lucide-react'
 import AISidebar from './AISidebar'
+import SystemChatWidget from './SystemChatWidget'
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: BarChart3 },
+  { path: '/sox-ops/control-library', label: 'Control Library', icon: Shield },
+  { path: '/sox-ops/evidence-requests', label: 'Evidence Requests', icon: Send },
+  { path: '/sox-ops/policy-mapping', label: 'Policy Mapping', icon: Workflow },
+  { path: '/sox-ops/audit-workflows', label: 'Audit Workflows', icon: GitBranch },
+  { path: '/sox-ops/risk-dashboard', label: 'Risk Dashboard', icon: Activity },
+  { path: '/sox-ops/remediation-retests', label: 'Remediation Retests', icon: CheckCircle },
+  { path: '/sox-ops/audit-trail', label: 'Audit Trail', icon: FileText },
+  { path: '/sox-ops/report-exports', label: 'Report Exports', icon: FileCheck },
+  { path: '/sox-ops/integrations', label: 'Integrations', icon: Workflow },
+  { path: '/sox-ops/notifications', label: 'Notifications', icon: Bell },
+  { path: '/sox-ops/trends-retests', label: 'Trends & Retests', icon: Activity },
+  { path: '/sox-ops/executive-dashboards', label: 'Executive Dashboards', icon: BookOpen },
   { path: '/controls', label: 'Control Testing', icon: Shield },
   { path: '/risk-assessments', label: 'Risk Assessment', icon: AlertTriangle },
   { path: '/evidence', label: 'Evidence Collection', icon: Search },
@@ -32,12 +45,22 @@ const navItems = [
   { path: '/key-report-completeness', label: 'Key Report Completeness', icon: FileCheck },
 ]
 
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem('user')
+    if (!raw || raw === 'undefined' || raw === 'null') return {}
+    return JSON.parse(raw)
+  } catch (_) {
+    return {}
+  }
+}
+
 export default function Layout({ children }) {
   const location = useLocation()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [aiSidebarOpen, setAiSidebarOpen] = useState(false)
-  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  const user = getStoredUser()
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -138,6 +161,7 @@ export default function Layout({ children }) {
 
       {/* AI Sidebar */}
       <AISidebar isOpen={aiSidebarOpen} onClose={() => setAiSidebarOpen(false)} />
+      <SystemChatWidget />
     </div>
   )
 }
