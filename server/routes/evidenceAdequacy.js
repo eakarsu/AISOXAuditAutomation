@@ -26,20 +26,17 @@ async function callOpenRouter(systemPrompt, userPrompt, opts = {}) {
   });
   if (!httpResp.ok) throw new Error(`OpenRouter HTTP ${httpResp.status}`);
   const data = await httpResp.json();
-  let txt = data.choices[0].message.content.trim();
+  let txt = data.choices?.[0]?.message?.content?.trim();
+  if (!txt) throw new Error('OpenRouter returned no substantive content');
   txt = txt.replace(/^```(?:json|JSON)?\s*\n?/, '').replace(/\n?\s*```\s*$/, '');
   try { return JSON.parse(txt); } catch { return { raw: txt }; }
 }
 
 async function persist(userId, feature, input, output) {
-  try {
-    if (typeof pool !== 'undefined' && pool && pool.query) {
-      await pool.query(
-        `INSERT INTO ai_results (user_id, feature, input, output) VALUES ($1,$2,$3,$4)`,
-        [userId, feature, JSON.stringify(input).slice(0, 4000), JSON.stringify(output)]
-      ).catch(() => {});
-    }
-  } catch (_) {}
+  await pool.query(
+    `INSERT INTO ai_results (user_id, feature, input, output) VALUES ($1,$2,$3,$4)`,
+    [userId, feature, JSON.stringify(input).slice(0, 4000), JSON.stringify(output)]
+  );
 }
 
 // POST /analyze - main feature endpoint
@@ -86,7 +83,7 @@ router.get('/history', auth, async (req, res) => {
     );
     res.json({ history: rows });
   } catch (err) {
-    res.json({ history: [], note: 'history table unavailable' });
+    res.status(500).json({ error: err.message });
   }
 });
 

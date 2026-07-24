@@ -1,4 +1,5 @@
-const API_BASE = '/api';
+const configuredBase = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+const API_BASE = configuredBase ? `${configuredBase}/api` : '/api';
 
 function getHeaders() {
   const token = localStorage.getItem('token');
