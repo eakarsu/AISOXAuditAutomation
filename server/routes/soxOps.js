@@ -172,6 +172,74 @@ const modules = {
   },
 };
 
+const minimumModuleRecords = 15;
+const supplementalCases = [
+  { code: 'PAY', area: 'Payroll Change Management', control_ref: 'CTL-PAY-011', risk_ref: 'RISK-PAY-03', assertion: 'Accuracy', owner: 'Payroll Director', assignee: 'payroll.owner@example.com', priority: 'high', risk_level: 'high', framework: 'SOX 404 / COSO Control Activities', system: 'Workday', audience: 'Chief People Officer' },
+  { code: 'TRE', area: 'Treasury Cash Reconciliation', control_ref: 'CTL-TRE-006', risk_ref: 'RISK-TRE-02', assertion: 'Existence / Accuracy', owner: 'Treasury Manager', assignee: 'treasury.owner@example.com', priority: 'critical', risk_level: 'high', framework: 'SOX 404', system: 'BlackLine', audience: 'Treasurer' },
+  { code: 'FA', area: 'Fixed Asset Capitalization', control_ref: 'CTL-FA-004', risk_ref: 'RISK-FA-01', assertion: 'Valuation', owner: 'Fixed Assets Manager', assignee: 'fixedassets.owner@example.com', priority: 'medium', risk_level: 'medium', framework: 'SOX 404 / US GAAP', system: 'SAP S/4HANA', audience: 'Chief Accounting Officer' },
+  { code: 'INV', area: 'Inventory Valuation', control_ref: 'CTL-INV-018', risk_ref: 'RISK-INV-05', assertion: 'Existence / Valuation', owner: 'Inventory Controller', assignee: 'inventory.owner@example.com', priority: 'high', risk_level: 'high', framework: 'SOX 404 / PCAOB AS 2201', system: 'Oracle Cloud ERP', audience: 'Operations Finance VP' },
+  { code: 'CLS', area: 'Consolidation and Close', control_ref: 'CTL-CLS-021', risk_ref: 'RISK-CLS-04', assertion: 'Completeness', owner: 'Corporate Controller', assignee: 'close.owner@example.com', priority: 'critical', risk_level: 'high', framework: 'SOX 404 / COSO', system: 'Oracle FCCS', audience: 'CFO' },
+  { code: 'TAX', area: 'Income Tax Provision', control_ref: 'CTL-TAX-007', risk_ref: 'RISK-TAX-03', assertion: 'Accuracy / Valuation', owner: 'Tax Director', assignee: 'tax.owner@example.com', priority: 'medium', risk_level: 'medium', framework: 'SOX 404 / ASC 740', system: 'ONESOURCE', audience: 'Tax Committee' },
+  { code: 'PAM', area: 'Privileged Access', control_ref: 'ITGC-PAM-003', risk_ref: 'RISK-IT-07', assertion: 'Access Security', owner: 'Identity Security Lead', assignee: 'identity.owner@example.com', priority: 'critical', risk_level: 'high', framework: 'SOX ITGC / COSO', system: 'CyberArk', audience: 'CISO' },
+  { code: 'CHG', area: 'Program Change Management', control_ref: 'ITGC-CHG-012', risk_ref: 'RISK-IT-09', assertion: 'Authorization', owner: 'Engineering Controls Lead', assignee: 'change.owner@example.com', priority: 'high', risk_level: 'medium', framework: 'SOX ITGC / PCAOB AS 2201', system: 'ServiceNow', audience: 'CIO' },
+  { code: 'INT', area: 'Interface Completeness', control_ref: 'ITGC-INT-005', risk_ref: 'RISK-IT-11', assertion: 'Completeness / Accuracy', owner: 'Data Integration Lead', assignee: 'interfaces.owner@example.com', priority: 'high', risk_level: 'high', framework: 'SOX ITGC', system: 'Snowflake', audience: 'Data Governance Council' },
+  { code: 'AP', area: 'Vendor Payment Authorization', control_ref: 'CTL-AP-016', risk_ref: 'RISK-AP-06', assertion: 'Occurrence / Authorization', owner: 'Accounts Payable Director', assignee: 'apcontrols.owner@example.com', priority: 'medium', risk_level: 'medium', framework: 'SOX 404 / COSO', system: 'Coupa', audience: 'Procurement Council' },
+  { code: 'DISC', area: 'Financial Statement Disclosures', control_ref: 'CTL-DISC-009', risk_ref: 'RISK-DISC-02', assertion: 'Presentation / Disclosure', owner: 'External Reporting Director', assignee: 'reporting.owner@example.com', priority: 'high', risk_level: 'medium', framework: 'SOX 404 / SEC Reporting', system: 'Workiva', audience: 'Disclosure Committee' },
+];
+
+const cycle = (values, index) => values[index % values.length];
+const pad = (value) => String(value).padStart(3, '0');
+
+function supplementalRow(moduleKey, fixture, index) {
+  const id = index + 5;
+  switch (moduleKey) {
+    case 'control-library':
+      return { id, template_id: `CTL-TPL-${pad(id)}`, name: `${fixture.area} Review`, framework: fixture.framework, assertion: fixture.assertion, owner: fixture.owner, status: cycle(['approved', 'review', 'draft'], index), test_steps: `Select the current-period ${fixture.area.toLowerCase()} population, inspect approvals, and reperform the key control.`, evidence_required: `${fixture.system} population, approval history, reviewer signoff` };
+    case 'evidence-requests':
+      return { id, request_id: `EVR-${1000 + id}`, control_ref: fixture.control_ref, assignee: fixture.assignee, due_date: nowIso(4 + index * 2), status: cycle(['open', 'submitted', 'overdue risk'], index), priority: fixture.priority, reminder_plan: cycle(['T-5 and T-2 reminders', 'Weekly until submitted', 'Daily escalation after due date'], index), approval_state: cycle(['awaiting evidence', 'reviewer check', 'owner correction requested'], index) };
+    case 'policy-mapping':
+      return { id, mapping_id: `MAP-${pad(id)}`, policy: `${fixture.area} Policy`, control_ref: fixture.control_ref, risk_ref: fixture.risk_ref, regulation: fixture.framework, coverage: cycle(['strong', 'partial', 'weak'], index), owner: fixture.owner };
+    case 'audit-workflows': {
+      const state = cycle(['reviewer pending', 'approved', 'preparer draft', 'rejected'], index);
+      return { id, workflow_id: `WF-${pad(id)}`, workpaper: `${fixture.area} operating effectiveness`, preparer: cycle(['E. Morgan', 'S. Nguyen', 'D. Williams', 'K. Garcia'], index), reviewer: cycle(['M. Chen', 'N. Brooks', 'R. Shah'], index), state, days_in_state: 1 + (index % 8), rejection_reason: state === 'rejected' ? 'Evidence did not reconcile to the source population.' : null, escalation: `${fixture.owner} after ${4 + (index % 4)} days` };
+    }
+    case 'risk-dashboard': {
+      const score = 58 + ((index * 7) % 38);
+      return { id, metric_id: `RD-${pad(id)}`, area: fixture.area, score, risk_level: fixture.risk_level, owner: fixture.owner, trend: cycle(['improving', 'flat', 'worsening'], index), drivers: `${cycle([1, 2, 3], index)} open evidence requests; ${cycle(['one pending signoff', 'a partial mapping', 'one overdue retest'], index)}` };
+    }
+    case 'remediation-retests':
+      return { id, finding_id: `FND-${pad(id)}`, title: `${fixture.area} evidence gap`, owner: fixture.owner, due_date: nowIso(12 + index * 3), retest_status: cycle(['scheduled', 'in progress', 'not started', 'passed'], index), closure_state: cycle(['open', 'review', 'approval pending'], index), proof: `${fixture.system} corrective evidence and management response are linked for retest.` };
+    case 'audit-trail':
+      return { id, event_id: `AUD-${String(id).padStart(4, '0')}`, event_type: cycle(['evidence_upload', 'reviewer_signoff', 'control_update', 'retest_scheduled'], index), actor: fixture.assignee, entity: fixture.control_ref, hash_status: cycle(['verified', 'verified', 'review'], index), created_at: nowIso(-11 + index), hash: `demo-${fixture.code.toLowerCase()}-${String(id).padStart(4, '0')}` };
+    case 'report-exports':
+      return { id, job_id: `EXP-${pad(id)}`, report_type: `${fixture.area} Report`, format: cycle(['PDF', 'Excel', 'PDF ZIP'], index), audience: fixture.audience, status: cycle(['ready', 'review', 'draft'], index), owner: fixture.owner, sections: 'Scope, control design, evidence status, exceptions, remediation, signoff' };
+    case 'integrations':
+      return { id, integration_id: `INT-${pad(id)}`, system: fixture.system, direction: cycle(['inbound', 'outbound', 'bidirectional'], index), status: cycle(['configured', 'planned', 'warning'], index), owner: fixture.owner, last_sync: index % 3 === 1 ? null : nowIso(-(index % 5)), mapping: `${fixture.area} populations, evidence, owners, and workflow status` };
+    case 'notifications':
+      return { id, rule_id: `NTF-${pad(id)}`, event: `${fixture.area} ${cycle(['evidence overdue', 'signoff requested', 'exception opened'], index)}`, channel: cycle(['Email', 'Slack + Email', 'In-app + Webhook'], index), severity: fixture.priority, status: cycle(['enabled', 'enabled', 'paused'], index), owner: fixture.owner, template: `${fixture.area} item {{record_id}} requires action by {{due_date}}.` };
+    case 'trends-retests':
+      return { id, trend_id: `TRD-${pad(id)}`, area: fixture.area, years_observed: 2 + (index % 4), recurrence: cycle(['recurring', 'declining', 'emerging', 'stable'], index), next_retest: nowIso(18 + index * 4), risk_level: fixture.risk_level, pattern: `${fixture.area} exceptions are tracked against the prior-year baseline and current remediation plan.` };
+    case 'executive-dashboards':
+      return { id, dashboard_id: `DSH-${pad(id)}`, audience: fixture.audience, readiness_score: 62 + ((index * 5) % 34), open_high_risks: index % 6, status: cycle(['live', 'review', 'draft'], index), owner: fixture.owner, metrics: `${fixture.area} readiness, overdue evidence, exceptions, remediation forecast` };
+    default:
+      throw new Error(`No SOX Ops fixture factory for ${moduleKey}`);
+  }
+}
+
+for (const [moduleKey, module] of Object.entries(modules)) {
+  const required = minimumModuleRecords - module.rows.length;
+  if (required > supplementalCases.length) throw new Error(`${moduleKey} needs ${required} supplemental rows`);
+  module.rows.push(...supplementalCases.slice(0, Math.max(required, 0)).map((fixture, index) => supplementalRow(moduleKey, fixture, index)));
+}
+
+function needsAttention(row) {
+  const operationalValues = [
+    row.status, row.priority, row.risk_level, row.coverage, row.state,
+    row.retest_status, row.closure_state, row.hash_status, row.recurrence,
+  ].filter((value) => value !== null && value !== undefined).join(' ');
+  return /high|critical|warning|weak|overdue|rejected|review|paused|recurring|worsening/i.test(operationalValues);
+}
+
 function moduleList() {
   return Object.entries(modules).map(([key, m]) => ({
     key,
@@ -180,7 +248,7 @@ function moduleList() {
     primaryAction: m.primaryAction,
     columns: m.columns,
     count: m.rows.length,
-    attention: m.rows.filter((r) => /high|critical|warning|weak|overdue|rejected|review|paused/i.test(JSON.stringify(r))).length,
+    attention: m.rows.filter(needsAttention).length,
   }));
 }
 
@@ -293,3 +361,4 @@ router.delete('/:moduleKey/:id', auth, (req, res) => {
 });
 
 module.exports = router;
+module.exports.__test = { modules, moduleList, minimumModuleRecords, needsAttention };

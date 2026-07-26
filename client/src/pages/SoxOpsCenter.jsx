@@ -262,7 +262,7 @@ export default function SoxOpsCenter({ initialModuleKey = 'control-library' }) {
       <div className="mb-6 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-primary-600">SOX Ops Center</p>
-          <h1 className="text-3xl font-bold text-gray-800 mt-1">Missing Feature Operations</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mt-1">SOX Operations Workspace</h1>
           <p className="text-gray-500 mt-2 max-w-3xl">
             Full workflow surfaces for control templates, evidence requests, policy mapping, signoffs, audit trail, integrations, notifications, trends, dashboards, and reports.
           </p>
