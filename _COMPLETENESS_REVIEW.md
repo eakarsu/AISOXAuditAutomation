@@ -58,3 +58,7 @@ Treat this as a prototype: prove one narrow financial outcome end to end with re
 4. Added segregation-of-duties roles, dual control, immutable evidence/events, permissioned transitions, optimistic versions, tenant/subject isolation, strong configuration, authenticated legacy APIs, and explicit human financial/audit review.
 5. Replaced reliance on the evidence-sufficiency gap with typed sufficiency workpapers, deterministic thresholds, reconciled versions, exception/remediation/correction paths, and connector failure records; the generated route is quarantined.
 6. Added an additive migration, eight governance/provider tests, CI gates, safe launcher, environment template, and nondestructive deployment/recovery runbook. No ledger, bank, GRC, filing, database, provider, service, build, professional, or regulatory validation was executed.
+
+## Extension (2026-08-30)
+
+Added a deterministic, role-gated control-testing calendar at `POST /api/governed-sox-assessments/control-calendar/plan`. It validates ownership, risk and frequency, calculates overdue/due-soon work, and keeps control-effectiveness conclusions with humans. Live accounting/GRC connectors and professional validation remain open.

@@ -1,5 +1,6 @@
 function createGovernedRouter({ express, workflow, auth, db }) {
   const crypto = require('node:crypto');
+  const { buildControlTestingCalendar } = require('./controlCalendar.cjs');
   const router = express.Router();
   const identifier = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
   const connectorNames = new Set((workflow.config.connectors || []).map((item) => item.name));
@@ -63,6 +64,14 @@ function createGovernedRouter({ express, workflow, auth, db }) {
         mode: 'quarantined_until_credentialed_and_contract_tested',
       })),
     });
+  });
+
+  router.post('/control-calendar/plan', (req, res) => {
+    try {
+      const allowed = new Set(workflow.config.assessmentRoles || workflow.config.createRoles);
+      if (!allowed.has(req.user.role)) return res.status(403).json({ error: 'FORBIDDEN' });
+      res.json(buildControlTestingCalendar(req.body || {}));
+    } catch (error) { respondError(res, error); }
   });
 
   router.get('/cases', async (req, res) => {
@@ -356,4 +365,3 @@ function createGovernedRouter({ express, workflow, auth, db }) {
 }
 
 module.exports = { createGovernedRouter };
-

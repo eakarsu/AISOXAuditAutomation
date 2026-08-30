@@ -5,6 +5,7 @@ const path = require('node:path');
 const { createWorkflow } = require('./workflowCore');
 const { validateRuntime } = require('./runtime');
 const config = require('./config');
+const { buildControlTestingCalendar } = require('./controlCalendar.cjs');
 const workflow = createWorkflow(config);
 const headers = {'x-tenant-id':'tenant-a','idempotency-key':'request-a'};
 
@@ -79,4 +80,14 @@ test('additive migration and launcher preserve append-only nondestructive bounda
   assert.match(migration, new RegExp(config.caseType));
   assert.doesNotMatch(migration, /DROP TABLE|TRUNCATE/);
   assert.doesNotMatch(launcher, /kill\s+-9|pkill|dropdb|createdb|npm\s+install|seed\.js|psql\s+.*-f/);
+});
+
+test('control calendar prioritizes overdue work without deciding effectiveness', () => {
+  const result = buildControlTestingCalendar({ asOf:'2026-08-30T00:00:00Z', controls:[
+    {id:'CTRL-1',ownerId:'owner-1',frequency:'quarterly',risk:'high',lastTestedAt:'2026-05-15T00:00:00Z'},
+    {id:'CTRL-2',ownerId:'owner-2',frequency:'annual',risk:'low',lastTestedAt:'2026-01-01T00:00:00Z'},
+  ]});
+  assert.equal(result.items[0].id, 'CTRL-1');
+  assert.equal(result.items[0].status, 'overdue');
+  assert.equal(result.automatedControlConclusion, false);
 });
