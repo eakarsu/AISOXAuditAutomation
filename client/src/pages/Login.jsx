@@ -98,7 +98,7 @@ export default function Login() {
               onClick={handleAutoFill}
               className="w-full bg-gray-100 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
             >
-              Auto-fill Demo Credentials
+              Auto Fill Demo Credentials
             </button>
           </div>
         </div>
